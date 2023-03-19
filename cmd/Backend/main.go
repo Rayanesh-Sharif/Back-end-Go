@@ -1,0 +1,64 @@
+package main
+
+import (
+	"RayaneshBackend/api"
+	"RayaneshBackend/internal/database"
+	"RayaneshBackend/pkg/session"
+	"context"
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
+func main() {
+	var err error
+	apiData := new(api.API)
+	// Connect to database
+	apiData.Database, err = database.NewDatabase(getDatabaseDSN())
+	if err != nil {
+		log.WithError(err).Fatalln("cannot connect to database")
+	}
+	// Connect to redis
+	sessionRedis, err := session.NewStorageFromRedis(getRedisOptions())
+	if err != nil {
+		log.WithError(err).Fatalln("cannot connect to redis for oauth2")
+	}
+	apiData.Session = session.NewSession(sessionRedis)
+	// Make gin
+	r := gin.Default()
+	r.Use(api.CORS())
+	r.MaxMultipartMemory = 8 << 20 // 8 MiB
+	// Authorization endpoints
+	users := r.Group("/auth")
+	{
+		users.POST("/login", apiData.AuthLogin)
+		users.POST("/signup", apiData.AuthSignup)
+		users.GET("/refresh", apiData.AuthRefresh)
+		users.POST("/logout", apiData.AuthLogout)
+	}
+	// Listen
+	srv := &http.Server{
+		Addr:    getListenAddress(),
+		Handler: r,
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.WithError(err).Fatalln("cannot serve http server")
+		}
+	}()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown Server ...")
+	// Graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	log.Println("Server exiting")
+}
