@@ -13,3 +13,15 @@ type loginResponse struct {
 	RefreshToken string `json:"refresh_token"`
 	TimeToLive   uint32 `json:"ttl"`
 }
+
+// registerRequest is the request body of registering the user
+type registerRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required"`
+}
+
+// refreshTokenRequest is the query values to refresh the token
+type refreshTokenRequest struct {
+	RefreshToken string `query:"refresh_token" binding:"required"`
+}

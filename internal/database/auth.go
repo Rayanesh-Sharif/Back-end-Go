@@ -27,3 +27,23 @@ func (db Database) UserLogin(email, password string) (User, error) {
 	}
 	return user, nil
 }
+
+// UserRegister will register the user in database
+func (db Database) UserRegister(email, username, password string) error {
+	// Hash the password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.Wrap(err, "cannot hash the password")
+	}
+	// Save the password in database
+	result := db.db.Create(&User{
+		Username:       username,
+		HashedPassword: string(hashedPassword),
+		Email:          email,
+	})
+	if result.Error != nil {
+		return errors.Wrap(err, "cannot insert into database")
+	}
+	// Done
+	return nil
+}
