@@ -33,12 +33,19 @@ func main() {
 	r.Use(api.CORS())
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
 	// Authorization endpoints
-	users := r.Group("/auth")
+	auth := r.Group("/auth")
 	{
-		users.POST("/login", apiData.AuthLogin)
-		users.POST("/signup", apiData.AuthSignup)
-		users.GET("/refresh", apiData.AuthRefresh)
-		users.POST("/logout", apiData.AuthLogout)
+		auth.POST("/login", apiData.AuthLogin)
+		auth.POST("/signup", apiData.AuthSignup)
+		auth.GET("/refresh", apiData.AuthRefresh)
+		auth.POST("/logout", apiData.AuthLogout)
+	}
+	// User management
+	users := r.Group("/user")
+	users.Use(apiData.AuthorizeUserMiddleware())
+	{
+		users.POST("/password", apiData.UserChangePassword)
+		users.POST("/photo")
 	}
 	// Listen
 	srv := &http.Server{

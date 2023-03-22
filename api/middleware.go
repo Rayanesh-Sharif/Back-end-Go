@@ -1,9 +1,14 @@
 package api
 
 import (
+	"RayaneshBackend/pkg/session"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strings"
 )
+
+// userIDAuthedContext is the key in context which we use to store the user ID in it
+const userIDAuthedContext = "userID"
 
 // getAccessTokenFromHeaders will get the access token in the Authorization header.
 // If header is empty or does not have the Bearer prefix, returns an empty string.
@@ -15,6 +20,28 @@ func getAccessTokenFromHeaders(c *gin.Context) string {
 		return ""
 	}
 	return header[len(prefix):]
+}
+
+func (api *API) AuthorizeUserMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get the header
+		header := getAccessTokenFromHeaders(c)
+		if header == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse{"empty auth"})
+			return
+		}
+		// Authorize
+		userID, err := api.Session.Get(header)
+		if err == session.ErrNotFound {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse{"bad auth"})
+			return
+		} else if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse{errInternalError})
+			return
+		}
+		// Set in map
+		c.Set(userIDAuthedContext, userID)
+	}
 }
 
 // CORS adds the CORS headers to request

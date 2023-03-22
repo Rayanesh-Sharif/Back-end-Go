@@ -25,3 +25,9 @@ type registerRequest struct {
 type refreshTokenRequest struct {
 	RefreshToken string `query:"refresh_token" binding:"required"`
 }
+
+// changePasswordRequest is the request body of a change password
+type changePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}

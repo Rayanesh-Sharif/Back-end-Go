@@ -41,6 +41,9 @@ func (r redisStorage) Store(userID uint32, ttl time.Duration) (accessToken, refr
 
 func (r redisStorage) Get(accessToken string) (userID uint32, err error) {
 	id, err := r.client.Get(context.Background(), accessTokenPrefix+accessToken).Uint64()
+	if errors.Is(err, redis.Nil) {
+		return 0, ErrNotFound
+	}
 	return uint32(id), err
 }
 
