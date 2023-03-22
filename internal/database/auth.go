@@ -42,7 +42,7 @@ func (db Database) UserRegister(email, username, password string) error {
 		Email:          email,
 	})
 	if result.Error != nil {
-		return errors.Wrap(err, "cannot insert into database")
+		return errors.Wrap(result.Error, "cannot insert into database")
 	}
 	// Done
 	return nil

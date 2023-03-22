@@ -60,5 +60,6 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server Shutdown:", err)
 	}
+	apiData.Database.Close()
 	log.Println("Server exiting")
 }

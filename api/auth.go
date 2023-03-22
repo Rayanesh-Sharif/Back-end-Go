@@ -5,7 +5,9 @@ import (
 	"RayaneshBackend/pkg/session"
 	"RayaneshBackend/pkg/util"
 	"github.com/gin-gonic/gin"
+	"github.com/go-faster/errors"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
@@ -60,7 +62,11 @@ func (api *API) AuthSignup(c *gin.Context) {
 	// Register user
 	err := api.Database.UserRegister(request.Email, request.Username, request.Password)
 	if err != nil {
-		// TODO: check for duplicate email
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			c.JSON(http.StatusConflict, errorResponse{"این ایمیل در سامانه وجود دارد!"})
+			return
+		}
+		// General error
 		c.JSON(http.StatusInternalServerError, errorResponse{errInternalError})
 		log.WithError(err).WithField("request", request).Error("cannot signup user")
 		return
