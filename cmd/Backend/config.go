@@ -39,3 +39,24 @@ func getListenAddress() string {
 	}
 	return address
 }
+
+// getStaticFolder is the static folder used to be statically served
+func getStaticFolder() string {
+	staticFolder := os.Getenv("STATIC_FOLDER")
+	if staticFolder == "" {
+		staticFolder = "./static"
+	}
+	log.Infof("Using %s as static folder\n", staticFolder)
+	// Check if folder exists; If it doesn't, create it
+	if _, err := os.Stat(staticFolder); err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir(staticFolder, 0666)
+			if err != nil {
+				log.WithError(err).WithField("path", staticFolder).Fatalln("cannot create static folder")
+			}
+		} else {
+			log.WithError(err).WithField("path", staticFolder).Fatalln("cannot check if static folder exists")
+		}
+	}
+	return staticFolder
+}

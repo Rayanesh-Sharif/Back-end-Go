@@ -17,6 +17,8 @@ import (
 func main() {
 	var err error
 	apiData := new(api.API)
+	// Get the static folder
+	apiData.StaticFolder = getStaticFolder()
 	// Connect to database
 	apiData.Database, err = database.NewDatabase(getDatabaseDSN())
 	if err != nil {
@@ -47,6 +49,8 @@ func main() {
 		users.POST("/password", apiData.UserChangePassword)
 		users.POST("/photo")
 	}
+	// Static folder
+	r.Static("/static", apiData.StaticFolder)
 	// Listen
 	srv := &http.Server{
 		Addr:    getListenAddress(),

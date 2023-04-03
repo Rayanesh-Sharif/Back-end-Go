@@ -16,3 +16,6 @@
 
 # Jetbrains
 .idea
+
+# Backend static files
+static
