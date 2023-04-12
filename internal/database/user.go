@@ -29,3 +29,24 @@ func (db Database) UserChangePassword(userID uint32, oldPassword, newPassword st
 	}
 	return nil
 }
+
+// GetUser will get all info about a user
+func (db Database) GetUser(userID uint32) (User, error) {
+	user := User{ID: userID}
+	err := db.db.First(&user).Error
+	if err != nil {
+		return User{}, errors.Wrap(err, "cannot query user")
+	}
+	user.HashedPassword = "" // we remove this from json. But just to be sure
+	return user, nil
+}
+
+// UpdateAbout will update the about section of a user
+func (db Database) UpdateAbout(userID uint32, about string) error {
+	user := User{ID: userID}
+	err := db.db.Model(&user).Update("about", about).Error
+	if err != nil {
+		return errors.Wrap(err, "cannot update about of user")
+	}
+	return nil
+}

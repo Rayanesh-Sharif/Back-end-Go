@@ -31,3 +31,9 @@ type changePasswordRequest struct {
 	OldPassword string `json:"old_password" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required"`
 }
+
+// changeAboutMeRequest is the request body of change about me.
+// It only contains the new "about" of user.
+type changeAboutMeRequest struct {
+	About string `json:"about" binding:"required"`
+}

@@ -10,6 +10,42 @@ import (
 	"os"
 )
 
+// UserGetMe will get the user information of logged-in user
+func (api *API) UserGetMe(c *gin.Context) {
+	userID := c.MustGet(userIDAuthedContext).(uint32)
+	user, err := api.Database.GetUser(userID)
+	if err != nil {
+		log.WithError(err).WithField("userID", userID).Error("cannot get user's info")
+		c.JSON(http.StatusInternalServerError, errorResponse{errInternalError})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+// UserUpdateAbout will update the "about" of user
+func (api *API) UserUpdateAbout(c *gin.Context) {
+	userID := c.MustGet(userIDAuthedContext).(uint32)
+	// Parse data
+	var request changeAboutMeRequest
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse{err.Error()})
+		return
+	}
+	// Check length
+	if len(request.About) > 4096 {
+		c.JSON(http.StatusBadRequest, errorResponse{"متن شما بیشتر از 4096 کارکتر است!"})
+		return
+	}
+	// Update user
+	err := api.Database.UpdateAbout(userID, request.About)
+	if err != nil {
+		log.WithError(err).WithField("about", request.About).WithField("userID", userID).Error("cannot update user's about")
+		c.JSON(http.StatusInternalServerError, errorResponse{errInternalError})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
+
 // UserChangePassword is an endpoint to change the password of a user
 func (api *API) UserChangePassword(c *gin.Context) {
 	userID := c.MustGet(userIDAuthedContext).(uint32)
@@ -52,7 +88,7 @@ func (api *API) UserChangeProfilePic(c *gin.Context) {
 		_ = os.Remove(userPicLocation)
 	}
 	if errors.Is(err, util.ErrMimeMismatch) { // on mime mismatch just tell the user that image must be jpg
-		c.JSON(http.StatusBadRequest, errorResponse{errProfileMustBeJpg})
+		c.JSON(http.StatusBadRequest, errorResponse{"عکس پروفایل باید به صورت jpg باشد."})
 		return
 	}
 	if err != nil { // this is some other error

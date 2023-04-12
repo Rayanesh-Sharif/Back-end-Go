@@ -46,6 +46,8 @@ func main() {
 	users := r.Group("/user")
 	users.Use(apiData.AuthorizeUserMiddleware())
 	{
+		users.GET("/me", apiData.UserGetMe)
+		users.PUT("/about", apiData.UserUpdateAbout)
 		users.POST("/password", apiData.UserChangePassword)
 		users.POST("/photo", apiData.UserChangeProfilePic)
 		users.DELETE("/photo", apiData.UserDeleteProfilePic)
