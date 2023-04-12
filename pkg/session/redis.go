@@ -70,3 +70,7 @@ func (r redisStorage) Refresh(refreshToken string, ttl time.Duration) (newAccess
 	r.client.Rename(context.Background(), accessTokenPrefix+accessToken, accessTokenPrefix+newAccessToken)
 	return
 }
+
+func (r redisStorage) Close() {
+	_ = r.client.Close()
+}

@@ -12,4 +12,5 @@ type Storage interface {
 	Get(accessToken string) (userID uint32, err error)
 	Delete(accessToken string) error
 	Refresh(refreshToken string, ttl time.Duration) (newAccessToken string, err error)
+	Close()
 }

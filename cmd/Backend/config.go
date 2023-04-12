@@ -1,6 +1,8 @@
 package main
 
 import (
+	"RayaneshBackend/api"
+	"RayaneshBackend/util"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -48,15 +50,12 @@ func getStaticFolder() string {
 	}
 	log.Infof("Using %s as static folder\n", staticFolder)
 	// Check if folder exists; If it doesn't, create it
-	if _, err := os.Stat(staticFolder); err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir(staticFolder, 0666)
-			if err != nil {
-				log.WithError(err).WithField("path", staticFolder).Fatalln("cannot create static folder")
-			}
-		} else {
-			log.WithError(err).WithField("path", staticFolder).Fatalln("cannot check if static folder exists")
-		}
+	if err := util.CreateFolder(staticFolder); err != nil {
+		log.WithError(err).WithField("path", staticFolder).Fatalln("cannot create root folder")
+	}
+	// Create subdirectories needed
+	if err := util.CreateFolder(staticFolder, api.ProfilePicturesFolder); err != nil {
+		log.WithError(err).WithField("path", staticFolder).Fatalln("cannot create profile pics folder")
 	}
 	return staticFolder
 }

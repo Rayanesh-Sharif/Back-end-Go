@@ -47,7 +47,8 @@ func main() {
 	users.Use(apiData.AuthorizeUserMiddleware())
 	{
 		users.POST("/password", apiData.UserChangePassword)
-		users.POST("/photo")
+		users.POST("/photo", apiData.UserChangeProfilePic)
+		users.DELETE("/photo", apiData.UserDeleteProfilePic)
 	}
 	// Static folder
 	r.Static("/static", apiData.StaticFolder)
@@ -72,5 +73,6 @@ func main() {
 		log.Fatal("Server Shutdown:", err)
 	}
 	apiData.Database.Close()
+	apiData.Session.Close()
 	log.Println("Server exiting")
 }
